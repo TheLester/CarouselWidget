@@ -158,7 +158,7 @@ public class CoverFlowCarousel extends Carousel {
     }
 
     private float getRotationAngle(int childCenter){
-        return -mMaxRotationAngle * getClampedRelativePosition(getRelativePosition(childCenter), mRotationThreshold * getWidgetSizeMultiplier());
+        return mMaxRotationAngle * getClampedRelativePosition(getRelativePosition(childCenter), mRotationThreshold * getWidgetSizeMultiplier());
     }
 
     private float getAngleOnCircle(int childCenter){
@@ -238,29 +238,6 @@ public class CoverFlowCarousel extends Carousel {
         final float z = mPerspectiveMultiplier * v;
 
         return  z;
-    }
-
-    /**
-     * Adds a view as a child view and takes care of measuring it.
-     * Wraps cover in its frame.
-     *
-     * @param child      The view to add
-     * @param layoutMode Either LAYOUT_MODE_LEFT or LAYOUT_MODE_RIGHT
-     * @return child which was actually added to container, subclasses can override to introduce frame views
-     */
-    protected View addAndMeasureChild(final View child, final int layoutMode) {
-        if (child.getLayoutParams() == null) child.setLayoutParams(new LayoutParams(mChildWidth,
-            mChildHeight));
-
-        final int index = layoutMode == LAYOUT_MODE_TO_BEFORE ? 0 : -1;
-        addViewInLayout(child, index, child.getLayoutParams(), true);
-
-        final int pwms = MeasureSpec.makeMeasureSpec(mChildWidth, MeasureSpec.EXACTLY);
-        final int phms = MeasureSpec.makeMeasureSpec(mChildHeight, MeasureSpec.EXACTLY);
-        measureChild(child, pwms, phms);
-        child.setDrawingCacheEnabled(isChildrenDrawnWithCacheEnabled());
-
-        return child;
     }
 
     private Bitmap createReflectionBitmap(Bitmap original){
