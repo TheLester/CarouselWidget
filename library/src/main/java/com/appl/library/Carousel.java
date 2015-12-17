@@ -98,8 +98,12 @@ public class Carousel extends ViewGroup {
 
     protected final ViewCache<View> mCache = new ViewCache<>();
 
-    protected int mRightEdge = NO_VALUE;
-    protected int mLeftEdge = NO_VALUE;
+//    protected int mRightEdge = NO_VALUE;
+//    protected int mLeftEdge = NO_VALUE;
+
+    protected int mTopEdge = NO_VALUE;
+    protected int mBottomEdge = NO_VALUE;
+
 
     private OnItemSelectedListener mOnItemSelectedListener;
 
@@ -155,24 +159,24 @@ public class Carousel extends ViewGroup {
 
     @Override
     public void computeScroll() {
-        final int centerItemLeft = getWidth() / 2 - mChildWidth / 2;
-        final int centerItemRight = getWidth() / 2 + mChildWidth / 2;
+        final int centerItemTop = getHeight() / 2 + mChildHeight / 2;
+        final int centerItemBottom = getHeight() / 2 - mChildHeight / 2;
 
-        if (mRightEdge != NO_VALUE && mScroller.getFinalX() > mRightEdge - centerItemRight) {
-            mScroller.setFinalX(mRightEdge - centerItemRight);
+        if (mTopEdge != NO_VALUE && mScroller.getFinalY() > mTopEdge - centerItemTop) {
+            mScroller.setFinalY(mTopEdge - centerItemTop);
         }
-        if (mLeftEdge != NO_VALUE && mScroller.getFinalX() < mLeftEdge - centerItemLeft) {
-            mScroller.setFinalX(mLeftEdge - centerItemLeft);
+        if (mBottomEdge != NO_VALUE && mScroller.getFinalX() < mBottomEdge - centerItemBottom) {
+            mScroller.setFinalY(mBottomEdge - centerItemBottom);
         }
 
         if (mScroller.computeScrollOffset()) {
-            if (mScroller.getFinalX() == mScroller.getCurrX()) {
+            if (mScroller.getFinalY() == mScroller.getCurrY()) {
                 mScroller.abortAnimation();
                 mTouchState = TOUCH_STATE_RESTING;
                 clearChildrenCache();
             } else {
-                final int x = mScroller.getCurrX();
-                scrollTo(x, 0);
+                final int y = mScroller.getCurrY();
+                scrollTo(0, y);
 
                 postInvalidate();
             }
@@ -195,7 +199,7 @@ public class Carousel extends ViewGroup {
         if (getChildCount() == 0) {
             v = getViewFromAdapter(mSelection);
             addAndMeasureChild(v, LAYOUT_MODE_AFTER);
-
+            //todo check
             final int horizontalCenter = getWidth() / 2;
             final int verticalCenter = getHeight() / 2;
             final int left = horizontalCenter - v.getMeasuredWidth() / 2;
@@ -208,10 +212,10 @@ public class Carousel extends ViewGroup {
             mLastVisibleChild = mSelection;
 
             if (mLastVisibleChild == mAdapter.getCount() - 1) {
-                mRightEdge = right;
+                mTopEdge = top;
             }
             if (mFirstVisibleChild == 0) {
-                mLeftEdge = left;
+                mBottomEdge = bottom;
             }
         }
 
@@ -227,7 +231,7 @@ public class Carousel extends ViewGroup {
 
     private void updateReverseOrderIndex() {
         int oldReverseIndex = mReverseOrderIndex;
-        final int screenCenter = getWidth() / 2 + getScrollX();
+        final int screenCenter = getHeight() / 2 + getScrollY();
         final int c = getChildCount();
 
         int minDiff = Integer.MAX_VALUE;
@@ -265,35 +269,41 @@ public class Carousel extends ViewGroup {
     /**
      * Layout children from right to left
      */
-    protected int layoutChildToBefore(View v, int right) {
-        final int verticalCenter = getHeight() / 2;
+    protected int layoutChildToBefore(View v, int top) {
+//        final int verticalCenter = getHeight() / 2;
+        final int horizontalCenter = getWidth() / 2;
+        //TODO check
 
         int l, t, r, b;
-        l = right - v.getMeasuredWidth();
-        t = verticalCenter - v.getMeasuredHeight() / 2;
-        ;
-        r = right;
-        b = t + v.getMeasuredHeight();
+        r = horizontalCenter - v.getMeasuredWidth() /2;
+        b = top - v.getMeasuredHeight();
+
+
+        l = r + v.getMeasuredWidth();
+        t = top;
+
 
         v.layout(l, t, r, b);
-        return r - (int)(v.getMeasuredWidth() * mSpacing);
+        return b - (int)(v.getMeasuredHeight() * mSpacing);
     }
 
     /**
      * @param left X coordinate where should we start layout
      */
-    protected int layoutChild(View v, int left) {
-        final int verticalCenter = getHeight() / 2;
-
+    protected int layoutChild(View v, int bottom) {
+        final int horizontalCenter = getHeight() / 2;
+    //TODO check
         int l, t, r, b;
-        l = left;
-        t = verticalCenter - v.getMeasuredHeight() / 2;
-        ;
-        r = l + v.getMeasuredWidth();
-        b = t + v.getMeasuredHeight();
+
+        b = bottom;
+        r = horizontalCenter - v.getMeasuredWidth()/2;
+
+
+        l = r +v.getMeasuredWidth();
+        t = b + v.getMeasuredHeight();
 
         v.layout(l, t, r, b);
-        return l + (int)(v.getMeasuredWidth() * mSpacing);
+        return t + (int)(v.getMeasuredHeight() * mSpacing);
     }
 
     /**
@@ -332,30 +342,30 @@ public class Carousel extends ViewGroup {
         }
 
         View selectedView = getChildAt(mReverseOrderIndex);
-        int selectedLeft = selectedView.getLeft();
+        int selectedBottom = selectedView.getBottom();
         int selectedTop = selectedView.getTop();
 
 
         removeAllViewsInLayout();
-        mRightEdge = NO_VALUE;
-        mLeftEdge = NO_VALUE;
+        mTopEdge = NO_VALUE;
+        mBottomEdge = NO_VALUE;
 
         View v = mAdapter.getView(mSelection, null, this);
         addAndMeasureChild(v, LAYOUT_MODE_AFTER);
         mReverseOrderIndex = 0;
 
-        final int right = selectedLeft + v.getMeasuredWidth();
+        final int top = selectedBottom + v.getMeasuredHeight();
         final int bottom = selectedTop + v.getMeasuredHeight();
-        v.layout(selectedLeft, selectedTop, right, bottom);
+        v.layout(selectedBottom, selectedTop, top, bottom);
 
         mFirstVisibleChild = mSelection;
         mLastVisibleChild = mSelection;
 
         if (mLastVisibleChild == mAdapter.getCount() - 1) {
-            mRightEdge = right;
+            mTopEdge = top;
         }
         if (mFirstVisibleChild == 0) {
-            mLeftEdge = selectedLeft;
+            mBottomEdge = selectedBottom;
         }
 
         refill();
@@ -367,18 +377,18 @@ public class Carousel extends ViewGroup {
     protected void refill() {
         if (mAdapter == null || getChildCount() == 0) return;
 
-        final int leftScreenEdge = getScrollX();
-        int rightScreenEdge = leftScreenEdge + getWidth();
+        final int bottomScreenEdge = getScrollY();
+        int topScreenEdge = bottomScreenEdge + getHeight();
 
-        removeNonVisibleViewsLeftToRight(leftScreenEdge);
-        removeNonVisibleViewsRightToLeft(rightScreenEdge);
+        removeNonVisibleViewsBottomToTop(bottomScreenEdge);
+        removeNonVisibleViewsTopToBottom(topScreenEdge);
 
-        refillLeftToRight(leftScreenEdge, rightScreenEdge);
-        refillRightToLeft(leftScreenEdge);
+        refillBottomToTop(topScreenEdge);
+        refillTopToBottom(bottomScreenEdge);
     }
 
     protected int getPartOfViewCoveredBySibling(){
-        return (int)(mChildWidth * (1.0f - mSpacing));
+        return (int)(mChildHeight * (1.0f - mSpacing));//todo check
     }
 
     protected View getViewFromAdapter(int position){
@@ -390,14 +400,14 @@ public class Carousel extends ViewGroup {
      *
      * @return firstItemPosition
      */
-    protected void refillRightToLeft(final int leftScreenEdge) {
+    protected void refillTopToBottom(final int bottomScreenEdge) {
         if (getChildCount() == 0) return;
 
         View child = getChildAt(0);
-        int childRight = child.getRight();
-        int newRight = childRight - (int)(mChildWidth * mSpacing);
+        int childTop = child.getTop();
+        int newTop = childTop - (int)(mChildHeight * mSpacing);
 
-        while (newRight - getPartOfViewCoveredBySibling() > leftScreenEdge && mFirstVisibleChild > 0) {
+        while (newTop - getPartOfViewCoveredBySibling() > bottomScreenEdge && mFirstVisibleChild > 0) {
             mFirstVisibleChild--;
 
             child = getViewFromAdapter(mFirstVisibleChild);
@@ -405,10 +415,10 @@ public class Carousel extends ViewGroup {
             mReverseOrderIndex++;
 
             addAndMeasureChild(child, LAYOUT_MODE_TO_BEFORE);
-            newRight = layoutChildToBefore(child, newRight);
+            newTop = layoutChildToBefore(child, newTop);
 
             if (mFirstVisibleChild <= 0) {
-                mLeftEdge = child.getLeft();
+                mBottomEdge = child.getBottom();
             }
         }
         return;
@@ -417,16 +427,16 @@ public class Carousel extends ViewGroup {
     /**
      * Checks and refills empty area on the right
      */
-    protected void refillLeftToRight(final int leftScreenEdge, final int rightScreenEdge) {
+    protected void refillBottomToTop(final int topScreenEdge) {
 
         View child;
-        int newLeft;
+        int newBottom;
 
         child = getChildAt(getChildCount() - 1);
-        int childLeft = child.getLeft();
-        newLeft = childLeft + (int)(mChildWidth * mSpacing);
+        int childBottom = child.getBottom();
+        newBottom = childBottom + (int)(mChildHeight * mSpacing);
 
-        while (newLeft + getPartOfViewCoveredBySibling() < rightScreenEdge && mLastVisibleChild < mAdapter
+        while (newBottom + getPartOfViewCoveredBySibling() < topScreenEdge && mLastVisibleChild < mAdapter
             .getCount() - 1) {
             mLastVisibleChild++;
 
@@ -434,10 +444,10 @@ public class Carousel extends ViewGroup {
             child.setSelected(false);
 
             addAndMeasureChild(child, LAYOUT_MODE_AFTER);
-            newLeft = layoutChild(child, newLeft);
+            newBottom = layoutChild(child, newBottom);
 
             if (mLastVisibleChild >= mAdapter.getCount() - 1) {
-                mRightEdge = child.getRight();
+                mTopEdge = child.getTop();
             }
         }
     }
@@ -446,13 +456,13 @@ public class Carousel extends ViewGroup {
     /**
      * Remove non visible views from left edge of screen
      */
-    protected void removeNonVisibleViewsLeftToRight(final int leftScreenEdge) {
+    protected void removeNonVisibleViewsBottomToTop(final int bottomScreenEdge) {
         if (getChildCount() == 0) return;
 
         // check if we should remove any views in the left
         View firstChild = getChildAt(0);
 
-        while (firstChild != null && firstChild.getLeft()+(mChildWidth * mSpacing)  < leftScreenEdge && getChildCount() > 1) {
+        while (firstChild != null && firstChild.getBottom()+(mChildHeight * mSpacing)  < bottomScreenEdge && getChildCount() > 1) {
 
             // remove view
             removeViewsInLayout(0, 1);
@@ -480,12 +490,12 @@ public class Carousel extends ViewGroup {
     /**
      * Remove non visible views from right edge of screen
      */
-    protected void removeNonVisibleViewsRightToLeft(final int rightScreenEdge) {
+    protected void removeNonVisibleViewsTopToBottom(final int topScreenEdge) {
         if (getChildCount() == 0) return;
 
         // check if we should remove any views in the right
         View lastChild = getChildAt(getChildCount() - 1);
-        while (lastChild != null && lastChild.getRight() - (mChildWidth * mSpacing)  > rightScreenEdge &&
+        while (lastChild != null && lastChild.getTop() - (mChildHeight * mSpacing)  > topScreenEdge &&
             getChildCount() > 1) {
             // remove the right view
             removeViewsInLayout(getChildCount() - 1, 1);
@@ -509,8 +519,8 @@ public class Carousel extends ViewGroup {
     }
 
     protected int getChildCenter(View v) {
-        final int w = v.getRight() - v.getLeft();
-        return v.getLeft() + w / 2;
+        final int h = v.getTop() - v.getBottom();
+        return v.getBottom() + h / 2;
     }
 
     protected int getChildCenter(int i) {
@@ -602,35 +612,35 @@ public class Carousel extends ViewGroup {
 
     }
 
-    protected void scrollByDelta(int deltaX) {
-        deltaX /= mSlowDownCoefficient;
+    protected void scrollByDelta(int deltaY) {
+        deltaY /= mSlowDownCoefficient;
 
-        final int centerItemLeft = getWidth() / 2 - mChildWidth / 2;
-        final int centerItemRight = getWidth() / 2 + mChildWidth / 2;
+        final int centerItemBottom = getHeight() / 2 - mChildHeight / 2;
+        final int centerItemTop = getHeight() / 2 + mChildHeight / 2;
 
-        final int rightInPixels;
-        final int leftInPixels;
-        if (mRightEdge == NO_VALUE) {
-            rightInPixels = Integer.MAX_VALUE;
+        final int topInPixels;
+        final int bottomInPixels;
+        if (mTopEdge == NO_VALUE) {
+            topInPixels = Integer.MAX_VALUE;
         } else {
-            rightInPixels = mRightEdge;
+            topInPixels = mTopEdge;
         }
 
-        if (mLeftEdge == NO_VALUE) {
-            leftInPixels = Integer.MIN_VALUE + getWidth(); //we cant have min value because of integer overflow
+        if (mBottomEdge == NO_VALUE) {
+            bottomInPixels = Integer.MIN_VALUE + getHeight(); //we cant have min value because of integer overflow
         } else {
-            leftInPixels = mLeftEdge;
+            bottomInPixels = mBottomEdge;
         }
 
-        final int x = getScrollX() + deltaX;
+        final int y = getScrollY() + deltaY;
 
-        if (x < (leftInPixels - centerItemLeft)) {
-            deltaX -= x - (leftInPixels - centerItemLeft);
-        } else if (x > rightInPixels - centerItemRight) {
-            deltaX -= x - (rightInPixels - centerItemRight);
+        if (y < (bottomInPixels - centerItemBottom)) {
+            deltaY -= y - (bottomInPixels - centerItemBottom);
+        } else if (y > topInPixels - centerItemTop) {
+            deltaY -= y - (topInPixels - centerItemTop);
         }
 
-        scrollBy(deltaX, 0);
+        scrollBy(0, deltaY);
     }
 
     @Override
@@ -667,7 +677,7 @@ public class Carousel extends ViewGroup {
 
                     scrollByDelta(deltaY);//todo fix
                 } else {
-                    final int yDiff = (int)Math.abs(x - mLastMotionY);
+                    final int yDiff = (int)Math.abs(y - mLastMotionY);
 
                     final int touchSlop = mTouchSlop;
                     final boolean yMoved = yDiff > touchSlop;
@@ -724,17 +734,17 @@ public class Carousel extends ViewGroup {
         final int x = getScrollX();
         final int y = getScrollY();
 
-        final int centerItemLeft = getWidth() / 2 - mChildWidth / 2;
-        final int centerItemRight = getWidth() / 2 + mChildWidth / 2;
-        final int rightInPixels;
-        final int leftInPixels;
-        if (mRightEdge == NO_VALUE) rightInPixels = Integer.MAX_VALUE;
-        else rightInPixels = mRightEdge;
-        if (mLeftEdge == NO_VALUE) leftInPixels = Integer.MIN_VALUE + getWidth();
-        else leftInPixels = mLeftEdge;
+        final int centerItemBottom = getHeight() / 2 - mChildHeight / 2;
+        final int centerItemTop = getHeight() / 2 + mChildHeight / 2;
+        final int topInPixels;
+        final int bottomtInPixels;
+        if (mTopEdge == NO_VALUE) topInPixels = Integer.MAX_VALUE;
+        else topInPixels = mTopEdge;
+        if (mBottomEdge == NO_VALUE) bottomtInPixels = Integer.MIN_VALUE + getHeight();
+        else bottomtInPixels = mBottomEdge;
 
-        mScroller.fling(x, y, velocityX, velocityY, leftInPixels - centerItemLeft,
-            rightInPixels - centerItemRight + 1, 0, 0);
+        mScroller.fling(x, y, velocityX, velocityY, bottomtInPixels - centerItemBottom,
+            topInPixels - centerItemTop + 1, 0, 0);//todo check
 
         invalidate();
     }

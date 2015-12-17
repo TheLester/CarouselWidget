@@ -1,12 +1,20 @@
 package com.appl.library;
 
 import android.content.Context;
-import android.graphics.*;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.LinearGradient;
+import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.PaintFlagsDrawFilter;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Shader;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 
 /**
@@ -96,8 +104,11 @@ public class CoverFlowCarousel extends Carousel {
 
     private void setTransformation(View v){
         int c = getChildCenter(v);
-        v.setRotationY(getRotationAngle(c) - getAngleOnCircle(c));
-        v.setTranslationX(getChildAdjustPosition(v));
+//        v.setRotationY(getRotationAngle(c) - getAngleOnCircle(c));
+//        v.setTranslationX(getChildAdjustPosition(v));
+        v.setRotationX(getRotationAngle(c) - getAngleOnCircle(c));
+        v.setTranslationY(getChildAdjustPosition(v));
+
         float scale = getScaleFactor(c) - getChildCircularPathZOffset(c);
         v.setScaleX(scale);
         v.setScaleY(scale);
@@ -151,11 +162,11 @@ public class CoverFlowCarousel extends Carousel {
     }
 
     private float getAngleOnCircle(int childCenter){
-        float x = getRelativePosition(childCenter)/mRadius;
-        if(x < -1.0f) x = -1.0f;
-        if(x > 1.0f) x = 1.0f;
-
-        return (float) (Math.acos(x)/Math.PI*180.0f - 90.0f);
+        float y = getRelativePosition(childCenter)/mRadius;
+        if(y < -1.0f) y = -1.0f;
+        if(y > 1.0f) y = 1.0f;
+        //todo check
+        return (float) (Math.acos(y)/Math.PI*180.0f - 90.0f);
     }
 
     private float getScaleFactor(int childCenter){
@@ -185,27 +196,27 @@ public class CoverFlowCarousel extends Carousel {
      * @return relative position
      */
     private float getRelativePosition(int pixexPos){
-        final int half = getWidth()/2;
-        final int centerPos = getScrollX() + half;
+        final int half = getHeight()/2;
+        final int centerPos = getScrollY() + half;
 
         return (pixexPos - centerPos)/((float) half);
     }
 
     private float getWidgetSizeMultiplier(){
-        return ((float)mTuningWidgetSize)/((float)getWidth());
+        return ((float)mTuningWidgetSize)/((float)getHeight());
     }
 
     private float getChildAdjustPosition(View child) {
         final int c = getChildCenter(child);
         final float crp = getClampedRelativePosition(getRelativePosition(c), mAdjustPositionThreshold * getWidgetSizeMultiplier());
-        final float d = mChildWidth * mAdjustPositionMultiplier * mSpacing * crp * getSpacingMultiplierOnCirlce(c);
+        final float d = mChildHeight * mAdjustPositionMultiplier * mSpacing * crp * getSpacingMultiplierOnCirlce(c);
 
         return d;
     }
 
     private float getSpacingMultiplierOnCirlce(int childCenter){
-        float x = getRelativePosition(childCenter)/mRadius;
-        return (float) Math.sin(Math.acos(x));
+        float y = getRelativePosition(childCenter)/mRadius;
+        return (float) Math.sin(Math.acos(y));
     }
 
     /**
@@ -214,11 +225,11 @@ public class CoverFlowCarousel extends Carousel {
      * @return offset from position on unitary circle
      */
     private float getOffsetOnCircle(int childCenter){
-        float x = getRelativePosition(childCenter)/mRadius;
-        if(x < -1.0f) x = -1.0f;
-        if(x > 1.0f) x = 1.0f;
+        float y = getRelativePosition(childCenter)/mRadius;
+        if(y < -1.0f) y = -1.0f;
+        if(y > 1.0f) y = 1.0f;
 
-        return (float) (1 - Math.sin(Math.acos(x)));
+        return (float) (1 - Math.sin(Math.acos(y)));
     }
 
     private float getChildCircularPathZOffset(int center){
