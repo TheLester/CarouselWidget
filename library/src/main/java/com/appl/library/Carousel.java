@@ -1,15 +1,18 @@
 package com.appl.library;
 
-import java.lang.ref.WeakReference;
-import java.util.LinkedList;
-
 import android.content.Context;
 import android.database.DataSetObserver;
-import android.graphics.Canvas;
 import android.util.AttributeSet;
-import android.view.*;
+import android.view.MotionEvent;
+import android.view.VelocityTracker;
+import android.view.View;
+import android.view.ViewConfiguration;
+import android.view.ViewGroup;
 import android.widget.Adapter;
 import android.widget.Scroller;
+
+import java.lang.ref.WeakReference;
+import java.util.LinkedList;
 
 /**
  * @author Martin Appl (appl.m@seznam.cz)
@@ -50,7 +53,9 @@ public class Carousel extends ViewGroup {
     protected int mTouchSlop;
     private int mMinimumVelocity;
     private int mMaximumVelocity;
-    private float mLastMotionX;
+//    private float mLastMotionX;
+    private float mLastMotionY;
+
 
     protected int mTouchState = TOUCH_STATE_RESTING;
 
@@ -560,10 +565,11 @@ public class Carousel extends ViewGroup {
                  * Locally do absolute value. mLastMotionX is set to the x value
                  * of the down event.
                  */
-                final int xDiff = (int)Math.abs(x - mLastMotionX);
+                //diff!
+                final int yDiff = (int)Math.abs(y - mLastMotionY);
 
                 final int touchSlop = mTouchSlop;
-                final boolean xMoved = xDiff > touchSlop;
+                final boolean xMoved = yDiff > touchSlop;
 
                 if (xMoved) {
                     // Scroll if the user moved far enough along the axis
@@ -576,7 +582,7 @@ public class Carousel extends ViewGroup {
 
             case MotionEvent.ACTION_DOWN:
                 // Remember location of down touch
-                mLastMotionX = x;
+                mLastMotionY = y;
 
                 /*
                  * If being flinged and user touches the screen, initiate drag;
@@ -649,25 +655,25 @@ public class Carousel extends ViewGroup {
                 }
 
                 // Remember where the motion event started
-                mLastMotionX = x;
+                mLastMotionY = y;
 
                 break;
             case MotionEvent.ACTION_MOVE:
 
                 if (mTouchState == TOUCH_STATE_SCROLLING) {
                     // Scroll to follow the motion event
-                    final int deltaX = (int)(mLastMotionX - x);
-                    mLastMotionX = x;
+                    final int deltaY = (int)(mLastMotionY - y);
+                    mLastMotionY = y;
 
-                    scrollByDelta(deltaX);
+                    scrollByDelta(deltaY);//todo fix
                 } else {
-                    final int xDiff = (int)Math.abs(x - mLastMotionX);
+                    final int yDiff = (int)Math.abs(x - mLastMotionY);
 
                     final int touchSlop = mTouchSlop;
-                    final boolean xMoved = xDiff > touchSlop;
+                    final boolean yMoved = yDiff > touchSlop;
 
 
-                    if (xMoved) {
+                    if (yMoved) {
                         // Scroll if the user moved far enough along the axis
                         mTouchState = TOUCH_STATE_SCROLLING;
                         enableChildrenCache();
