@@ -21,7 +21,7 @@ import android.widget.FrameLayout;
  * @author Martin Appl
  */
 public class CoverFlowCarousel extends Carousel {
-
+    private static final String TAG = "CoverFlowCarousel";
     /**
      * Widget size on which was tuning of parameters done. This value is used to scale parameters on when widgets has different size
      */
@@ -125,6 +125,7 @@ public class CoverFlowCarousel extends Carousel {
     @Override
     public void computeScroll() {
         super.computeScroll();
+
         for(int i=0; i < getChildCount(); i++){
             setTransformation(getChildAt(i));
         }
