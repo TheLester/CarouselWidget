@@ -3,14 +3,11 @@ package com.appl.library;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.LinearGradient;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PaintFlagsDrawFilter;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
-import android.graphics.Shader;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -241,27 +238,6 @@ public class CoverFlowCarousel extends Carousel {
         return  z;
     }
 
-    private Bitmap createReflectionBitmap(Bitmap original){
-        final int w = original.getWidth();
-        final int h = original.getHeight();
-        final int rh = (int) (h * mReflectionHeight);
-        final int gradientColor = Color.argb(mReflectionOpacity, 0xff, 0xff, 0xff);
-
-        final Bitmap reflection = Bitmap.createBitmap(original, 0, rh, w, rh, mReflectionMatrix, false);
-
-        final LinearGradient shader = new LinearGradient(0, 0, 0, reflection.getHeight(), gradientColor, 0x00ffffff, Shader.TileMode.CLAMP);
-        mPaint.reset();
-        mPaint.setShader(shader);
-        mPaint.setXfermode(mXfermode);
-
-        mReflectionCanvas.setBitmap(reflection);
-        mReflectionCanvas.drawRect(0, 0, reflection.getWidth(), reflection.getHeight(), mPaint);
-
-        return reflection;
-    }
-
-
-
     private class CoverFrame extends FrameLayout {
         private Bitmap mReflectionCache;
         private boolean mReflectionCacheInvalid = false;
@@ -290,14 +266,7 @@ public class CoverFlowCarousel extends Carousel {
 
             addView(cover,lp);
         }
-
-//        @Override
-//        protected void dispatchDraw(Canvas canvas) {
-//            canvas.setDrawFilter(new PaintFlagsDrawFilter(1, Paint.ANTI_ALIAS_FLAG));
-//            super.dispatchDraw(canvas);
-//        }
-
-
+        //todo investigate why we need drawing cache(- only for reflection image?)
         @Override
         public Bitmap getDrawingCache(boolean autoScale) {
             final Bitmap b = super.getDrawingCache(autoScale);
@@ -305,7 +274,6 @@ public class CoverFlowCarousel extends Carousel {
             if(mReflectionCacheInvalid){
                 if(/*(mTouchState != TOUCH_STATE_FLING && mTouchState != TOUCH_STATE_ALIGN) || */mReflectionCache == null){
                     try{
-                        mReflectionCache = createReflectionBitmap(b);
                         mReflectionCacheInvalid = false;
                     }
                     catch (NullPointerException e){
