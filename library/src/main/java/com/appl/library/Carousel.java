@@ -81,7 +81,7 @@ public class Carousel extends ViewGroup {
     /**
      * Relative spacing value of Views in container. If <1 Views will overlap, if >1 Views will have spaces between them
      */
-    protected float mSpacing = 1f;//;0.5f;
+    protected float mSpacing = 0.5f;
     /**
      * Index of view in center of screen, which is most in foreground
      */
@@ -91,8 +91,8 @@ public class Carousel extends ViewGroup {
      */
     private int mSlowDownCoefficient = 1;
 
-    protected int mChildWidth = 240;
-    protected int mChildHeight = 360;
+    protected int mChildWidth = 360;
+    protected int mChildHeight = 240;
 
     private int mSelection;
     protected Adapter mAdapter;
@@ -163,8 +163,8 @@ public class Carousel extends ViewGroup {
 
     @Override
     public void computeScroll() {
-        final int centerItemTop = getHeight() / 2 + mChildHeight / 2;
-        final int centerItemBottom = getHeight() / 2 - mChildHeight / 2;
+        final int centerItemTop = getHeight() / 2 - mChildHeight / 2;
+        final int centerItemBottom = getHeight() / 2 + mChildHeight / 2;
 
         if (mTopEdge != NO_VALUE && mScroller.getFinalY() > mTopEdge - centerItemTop) {
             mScroller.setFinalY(mTopEdge - centerItemTop);
@@ -288,7 +288,7 @@ public class Carousel extends ViewGroup {
         t = top;
 
         r = horizontalCenter + v.getMeasuredWidth() /2;
-        b = top - v.getMeasuredHeight();
+        b = top + v.getMeasuredHeight();
 
         v.layout(l, t, r, b);
         return t - (int)(v.getMeasuredHeight() * mSpacing);
@@ -303,7 +303,7 @@ public class Carousel extends ViewGroup {
         int l, t, r, b;
 
         l = horizontalCenter - v.getMeasuredWidth()/2;
-        t = bottom + v.getMeasuredHeight();
+        t = bottom - v.getMeasuredHeight();
 
         r = horizontalCenter + v.getMeasuredWidth()/2;
         b = bottom;
@@ -325,7 +325,7 @@ public class Carousel extends ViewGroup {
                     mChildHeight);
             child.setLayoutParams(params);
         }
-
+        Log.i(TAG, "addAndMeasureChild: "+getChildCount());
         final int index = layoutMode == LAYOUT_MODE_TO_BEFORE ? 0 : -1;
         addViewInLayout(child, index, child.getLayoutParams(), true);
 
@@ -388,21 +388,21 @@ public class Carousel extends ViewGroup {
         //todo
 //        final int topScreenEdge = getScrollY();
 //        int bottomScreenEdge = topScreenEdge - getHeight();
-        final int topScreenEdge = getScrollY();
+        final int topScreenEdge = getScrollY()==0 ? getHeight() :getScrollY();//getScrollY()+getHeight();
         int bottomScreenEdge = topScreenEdge - getHeight();
 
         Log.i(TAG, "refillt: "+topScreenEdge);
         Log.i(TAG, "refillb: "+bottomScreenEdge);
 
-        removeNonVisibleViewsBottomToTop(bottomScreenEdge);
-        removeNonVisibleViewsTopToBottom(topScreenEdge);
+//        removeNonVisibleViewsBottomToTop(bottomScreenEdge);
+//        removeNonVisibleViewsTopToBottom(topScreenEdge);
 
         refillBottomToTop(topScreenEdge);
         refillTopToBottom(bottomScreenEdge);
     }
 
     protected int getPartOfViewCoveredBySibling(){
-        return 0;//(int)(mChildHeight * (1.0f - mSpacing));//todo check
+        return (int)(mChildHeight * (1.0f - mSpacing));//todo check
     }
 
     protected View getViewFromAdapter(int position){
@@ -423,7 +423,7 @@ public class Carousel extends ViewGroup {
 
         while (newTop - getPartOfViewCoveredBySibling() > bottomScreenEdge && mFirstVisibleChild > 0) {
             mFirstVisibleChild--;
-            Log.i(TAG, "refillTopToBottom: "+mFirstVisibleChild);
+           // Log.i(TAG, "refillTopToBottom: "+mFirstVisibleChild);
             child = getViewFromAdapter(mFirstVisibleChild);
             child.setSelected(false);
             mReverseOrderIndex++;
@@ -439,22 +439,25 @@ public class Carousel extends ViewGroup {
     }
 
     /**
-     * Checks and refills empty area on the right
+     * Checks and refills empty area on the top
      */
     protected void refillBottomToTop(final int topScreenEdge) {
 
         View child;
         int newBottom;
 
-        child = getChildAt(getChildCount() - 1);
+        int index = 0;
+//        Log.i(TAG, "index: "+index);
+        child = getChildAt(index);
         int childBottom = child.getBottom();
+
         newBottom = childBottom + (int)(mChildHeight * mSpacing);
-        Log.i(TAG, "refillLeftToRight: "+newBottom +" / "+  getPartOfViewCoveredBySibling() +" /r "+topScreenEdge+" / "+(mLastVisibleChild < mAdapter
+        Log.i(TAG, "refillLeftToRight: "+newBottom +" / "+" /r "+topScreenEdge+" / "+(mLastVisibleChild < mAdapter
                 .getCount() - 1));
         while (newBottom + getPartOfViewCoveredBySibling() < topScreenEdge && mLastVisibleChild < mAdapter
             .getCount() - 1) {
             mLastVisibleChild++;
-            Log.i(TAG, "refillBottomToTop: "+mLastVisibleChild);
+//            Log.i(TAG, "refillBottomToTop: "+mLastVisibleChild);
             child = getViewFromAdapter(mLastVisibleChild);
             child.setSelected(false);
 
